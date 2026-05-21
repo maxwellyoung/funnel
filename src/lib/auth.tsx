@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { User } from "@supabase/supabase-js";
-import { supabase } from "./supabase";
+import { isSupabaseConfigured, supabase } from "./supabase";
 
 interface AuthContextType {
   user: User | null;
@@ -18,6 +18,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!isSupabaseConfigured) {
+      setLoading(false);
+      return;
+    }
+
     // Check active sessions and sets the user
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
@@ -35,6 +40,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signIn = async () => {
+    if (!isSupabaseConfigured) return;
+
     await supabase.auth.signInWithOAuth({
       provider: "github",
       options: {
@@ -44,6 +51,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
+    if (!isSupabaseConfigured) return;
+
     await supabase.auth.signOut();
   };
 
